@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orbital: Earth Guardian</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Aldrich&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="starfield" aria-hidden="true"></canvas>
+
+    <div class="app-shell">
+      <header class="topbar glass">
+        <div class="brand-block">
+          <p class="eyebrow">NASA Earth Systems Game Prototype</p>
+          <h1>Orbital: Earth Guardian</h1>
+          <p class="subtitle">
+            Explore Earth from orbit, read live NASA layers, predict disasters,
+            and stabilize the planet as a cosmic guardian.
+          </p>
+        </div>
+
+        <div class="status-grid">
+          <article class="status-card">
+            <span class="status-label">Mode</span>
+            <strong id="modeLabel">Mission Mode</strong>
+            <small>Live events and intervention play</small>
+          </article>
+          <article class="status-card">
+            <span class="status-label">Orbit</span>
+            <strong id="destinationLabel">Low Earth Orbit</strong>
+            <small>High detail planetary scan pass</small>
+          </article>
+          <article class="status-card">
+            <span class="status-label">Data Feed</span>
+            <strong id="dataHealth">Syncing NASA feeds</strong>
+            <small id="dataTimestamp">Preparing Earth observation streams</small>
+          </article>
+        </div>
+      </header>
+
+      <main class="main-grid">
+        <aside class="left-rail">
+          <section class="panel glass">
+            <div class="panel-header">
+              <p class="kicker">Game Modes</p>
+              <h2>Mission Control</h2>
+            </div>
+            <div class="segmented" id="modeControls">
+              <button class="segmented__button is-active" data-mode="mission">
+                Mission
+              </button>
+              <button class="segmented__button" data-mode="explorer">
+                Explorer
+              </button>
+              <button class="segmented__button" data-mode="sandbox">
+                Sandbox
+              </button>
+            </div>
+            <p class="microcopy">
+              Drag the globe to change your orbit path. Click any visible point
+              on Earth to run a region scan.
+            </p>
+          </section>
+
+          <section class="panel glass">
+            <div class="panel-header">
+              <p class="kicker">Navigation</p>
+              <h2>Orbital Route</h2>
+            </div>
+            <div class="chip-grid" id="destinationControls">
+              <button class="chip is-active" data-destination="leo">LEO</button>
+              <button class="chip" data-destination="station">Station</button>
+              <button class="chip" data-destination="moon">Moon Base</button>
+            </div>
+
+            <div class="dial-readout">
+              <div>
+                <span class="metric-name">Longitudinal Sweep</span>
+                <strong id="orbitLongitude">0.0°</strong>
+              </div>
+              <div>
+                <span class="metric-name">Orbital Tilt</span>
+                <strong id="orbitTilt">18.0°</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel glass">
+            <div class="panel-header">
+              <p class="kicker">NASA Layers</p>
+              <h2>Observation Stack</h2>
+            </div>
+            <div class="layer-list" id="layerControls">
+              <button class="layer-card is-active" data-layer="terrain">
+                <span>Terrain</span>
+                <small>True-color Earth surface</small>
+              </button>
+              <button class="layer-card" data-layer="vegetation">
+                <span>Vegetation</span>
+                <small>NDVI biosphere health</small>
+              </button>
+              <button class="layer-card" data-layer="atmosphere">
+                <span>Atmosphere</span>
+                <small>Aerosol optical depth</small>
+              </button>
+              <button class="layer-card" data-layer="ocean">
+                <span>Ocean Heat</span>
+                <small>Sea-surface temperature anomaly</small>
+              </button>
+            </div>
+            <div class="legend-box" id="legendBox">
+              <div>
+                <span class="metric-name">Layer Feed</span>
+                <strong id="layerTitle">MODIS Terra True Color</strong>
+              </div>
+              <img
+                id="legendImage"
+                alt="NASA layer legend"
+                class="legend-image hidden"
+              />
+            </div>
+          </section>
+
+          <section class="panel glass">
+            <div class="panel-header">
+              <p class="kicker">Time Control</p>
+              <h2>Planet Futures</h2>
+            </div>
+            <label class="range-block" for="yearRange">
+              <span class="metric-name">Simulation Year</span>
+              <strong id="yearLabel">2026</strong>
+            </label>
+            <input
+              id="yearRange"
+              class="slider"
+              type="range"
+              min="2026"
+              max="2100"
+              step="1"
+              value="2026"
+            />
+            <div class="segmented segmented--compact" id="speedControls">
+              <button class="segmented__button is-active" data-speed="0">
+                Pause
+              </button>
+              <button class="segmented__button" data-speed="12">12x</button>
+              <button class="segmented__button" data-speed="120">120x</button>
+            </div>
+            <p class="microcopy" id="projectionLabel">
+              Present-day NASA measurements with projected Earth-system stress.
+            </p>
+          </section>
+
+          <section class="panel glass" id="sandboxPanel">
+            <div class="panel-header">
+              <p class="kicker">Sandbox Controls</p>
+              <h2>Earth Systems</h2>
+            </div>
+            <label class="slider-group" for="aerosolSlider">
+              <span>Aerosol Load</span>
+              <strong id="aerosolValue">35%</strong>
+            </label>
+            <input
+              id="aerosolSlider"
+              class="slider slider--thin"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="35"
+            />
+
+            <label class="slider-group" for="rewildingSlider">
+              <span>Rewilding Boost</span>
+              <strong id="rewildingValue">52%</strong>
+            </label>
+            <input
+              id="rewildingSlider"
+              class="slider slider--thin"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="52"
+            />
+
+            <label class="slider-group" for="oceanHeatSlider">
+              <span>Ocean Heat</span>
+              <strong id="oceanHeatValue">41%</strong>
+            </label>
+            <input
+              id="oceanHeatSlider"
+              class="slider slider--thin"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="41"
+            />
+          </section>
+        </aside>
+
+        <section class="viewport glass">
+          <div class="viewport-head">
+            <div>
+              <p class="kicker">Orbital View</p>
+              <h2 id="sceneTitle">Earth in Low Orbit</h2>
+            </div>
+            <div class="scene-tags">
+              <span class="scene-tag">Zero-G Navigation</span>
+              <span class="scene-tag">Satellite Deployment</span>
+              <span class="scene-tag">Climate Defense</span>
+            </div>
+          </div>
+
+          <div class="orbital-stage" id="orbitalStage">
+            <div class="nebula-glow nebula-glow--one"></div>
+            <div class="nebula-glow nebula-glow--two"></div>
+            <div class="sun-wash"></div>
+            <div class="moon-object" id="moonObject"></div>
+
+            <div class="hud-corner hud-corner--top-left">
+              <span>Astro Cam</span>
+              <strong id="clockLabel">00:00 UTC</strong>
+            </div>
+            <div class="hud-corner hud-corner--top-right">
+              <span>Guardian Index</span>
+              <strong id="guardianSummary">72%</strong>
+            </div>
+
+            <div class="planet-zone" id="planetZone">
+              <div class="orbit-ring orbit-ring--back"></div>
+              <div class="orbit-ring orbit-ring--mid"></div>
+
+              <div class="planet-shell" id="planetShell">
+                <div class="planet-glow"></div>
+                <button
+                  id="earthGlobe"
+                  class="earth-globe"
+                  type="button"
+                  aria-label="Interactive Earth globe"
+                >
+                  <div class="earth-layer earth-layer--base" id="earthBase"></div>
+                  <div
+                    class="earth-layer earth-layer--overlay"
+                    id="earthOverlay"
+                  ></div>
+                  <div class="earth-layer earth-layer--clouds"></div>
+                  <div class="earth-layer earth-layer--grid"></div>
+                  <div class="earth-layer earth-layer--night" id="earthNight"></div>
+                  <div class="earth-layer earth-layer--atmosphere"></div>
+                  <svg
+                    id="trackLayer"
+                    class="track-layer"
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  ></svg>
+                  <div class="marker-layer" id="markerLayer"></div>
+                  <div class="scan-reticle hidden" id="scanReticle">
+                    <span></span>
+                  </div>
+                </button>
+
+                <div class="orbiter orbiter--station" id="orbiterStation"></div>
+                <div class="orbiter orbiter--probe" id="orbiterProbe"></div>
+              </div>
+
+              <div class="orbit-ring orbit-ring--front"></div>
+            </div>
+
+            <div class="event-banner" id="eventBanner">
+              <p class="kicker">Active Mission</p>
+              <h3 id="activeMissionTitle">Loading mission feed</h3>
+              <p id="activeMissionBody">
+                Pulling NASA natural hazard activity from orbit.
+              </p>
+            </div>
+
+            <div class="stage-controls">
+              <button class="action-button" id="deploySatelliteButton">
+                Deploy Satellite
+              </button>
+              <button class="action-button action-button--ghost" id="scanSweepButton">
+                Sweep Current Region
+              </button>
+            </div>
+          </div>
+
+          <div class="viewport-footer">
+            <div class="source-strip">
+              <span class="source-pill">NASA GIBS imagery</span>
+              <span class="source-pill">NASA EONET events</span>
+              <span class="source-pill">NASA POWER regional metrics</span>
+            </div>
+            <p class="microcopy">
+              Day-night lighting and future stress projections update as you
+              fast-forward the simulation.
+            </p>
+          </div>
+        </section>
+
+        <aside class="right-rail">
+          <section class="panel glass">
+            <div class="panel-header">
+              <p class="kicker">Scan Console</p>
+              <h2 id="scanTitle">Atlantic Thermal Corridor</h2>
+            </div>
+            <div class="scan-location">
+              <span id="scanCoordinates">12.5°N, 34.0°W</span>
+              <strong id="scanStatus">Pointing sensors</strong>
+            </div>
+            <div class="telemetry-grid">
+              <article class="telemetry-card">
+                <span>Temp</span>
+                <strong id="tempMetric">--</strong>
+                <small>Air at 2 meters</small>
+              </article>
+              <article class="telemetry-card">
+                <span>Wind</span>
+                <strong id="windMetric">--</strong>
+                <small>10 meter speed</small>
+              </article>
+              <article class="telemetry-card">
+                <span>Rain</span>
+                <strong id="rainMetric">--</strong>
+                <small>Daily corrected precip</small>
+              </article>
+              <article class="telemetry-card">
+                <span>Solar</span>
+                <strong id="solarMetric">--</strong>
+                <small>Surface irradiance</small>
+              </article>
+              <article class="telemetry-card">
+                <span>Biosphere</span>
+                <strong id="bioMetric">--</strong>
+                <small>Vegetation vitality</small>
+              </article>
+              <article class="telemetry-card">
+                <span>Aerosols</span>
+                <strong id="aerosolMetric">--</strong>
+                <small>Atmospheric load</small>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel glass">
+            <div class="panel-header">
+              <p class="kicker">Cosmic Guardian System</p>
+              <h2>Planet Balance</h2>
+            </div>
+            <div class="meter-stack" id="guardianMeters">
+              <div class="meter" data-meter="atmosphere">
+                <div class="meter-head">
+                  <span>Atmosphere</span>
+                  <strong>72%</strong>
+                </div>
+                <div class="meter-track"><span></span></div>
+              </div>
+              <div class="meter" data-meter="biosphere">
+                <div class="meter-head">
+                  <span>Biosphere</span>
+                  <strong>69%</strong>
+                </div>
+                <div class="meter-track"><span></span></div>
+              </div>
+              <div class="meter" data-meter="oceans">
+                <div class="meter-head">
+                  <span>Oceans</span>
+                  <strong>66%</strong>
+                </div>
+                <div class="meter-track"><span></span></div>
+              </div>
+              <div class="meter" data-meter="shield">
+                <div class="meter-head">
+                  <span>Orbital Shield</span>
+                  <strong>74%</strong>
+                </div>
+                <div class="meter-track"><span></span></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel glass">
+            <div class="panel-header">
+              <p class="kicker">Interventions</p>
+              <h2>Response Deck</h2>
+            </div>
+            <div class="intervention-grid" id="interventionControls">
+              <button class="intervention-card" data-action="storm-mesh">
+                <span>Storm Mesh</span>
+                <small>Boost forecast accuracy and storm readiness</small>
+              </button>
+              <button class="intervention-card" data-action="rewild">
+                <span>Rewilding Pulse</span>
+                <small>Stabilize biosphere health and carbon drawdown</small>
+              </button>
+              <button class="intervention-card" data-action="ocean-relay">
+                <span>Ocean Relay</span>
+                <small>Cool marine hotspots and protect current balance</small>
+              </button>
+              <button class="intervention-card" data-action="solar-shield">
+                <span>Solar Shield</span>
+                <small>Deflect solar storms and asteroid fragments</small>
+              </button>
+            </div>
+            <div class="mission-log" id="missionLog">
+              Guardian systems online. Awaiting first intervention.
+            </div>
+          </section>
+
+          <section class="panel glass">
+            <div class="panel-header">
+              <p class="kicker">Live Missions</p>
+              <h2>Earth Hazards</h2>
+            </div>
+            <div class="mission-list" id="missionList"></div>
+          </section>
+
+          <section class="panel glass">
+            <div class="panel-header">
+              <p class="kicker">Earth Science Layer</p>
+              <h2>What You’re Seeing</h2>
+            </div>
+            <p class="insight-text" id="insightText">
+              Switching observation layers reveals how Earth’s biosphere,
+              atmosphere, and oceans react together over time.
+            </p>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
